@@ -35,12 +35,17 @@ jobs:
             echo "$OUTDATED_PACKAGES" > outdated-packages.json
             echo "Outdated packages file content:"
             cat outdated-packages.json
-            echo "::set-output name=outdated::$(echo "$OUTDATED_PACKAGES" | tr -d '\n')"
+            echo "Saving output to a temporary file"
+            echo "$OUTDATED_PACKAGES" | jq -c > outdated-packages-temp.json
+            echo "Setting output variable from the temporary file"
+            OUTDATED_PACKAGES_ENC=$(cat outdated-packages-temp.json)
+            echo "::set-output name=outdated::$OUTDATED_PACKAGES_ENC"
           else
             echo "Error while fetching outdated packages:"
             echo "$OUTDATED_PACKAGES"
             exit 1
           fi
+
 
       - name: Create pull requests for outdated packages
         id: pr
