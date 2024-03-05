@@ -28,7 +28,9 @@ jobs:
 
       - name: Check for outdated packages
         run: |
-          pnpm outdated -r --json
+          OUTDATED_PACKAGES=$(pnpm outdated -r --json 2>&1)
+          echo "Outdated packages output:"
+          echo "$OUTDATED_PACKAGES"
 
       - name: Create pull requests for outdated packages
         id: pr
