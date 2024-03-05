@@ -29,7 +29,7 @@ jobs:
       - name: Check for outdated packages
         id: outdated
         run: |
-          OUTDATED_PACKAGES=$(pnpm outdated -r --json | jq -c 'to_entries | map({key: .key, value: .value.wanted})')
+          OUTDATED_PACKAGES=$(pnpm outdated -r --json | jq -c 'to_entries | map({key: .key, value: .value.latest})')
           echo "OUTDATED_PACKAGES=$OUTDATED_PACKAGES" >> $GITHUB_ENV
 
       - name: Debug OUTDATED_PACKAGES
