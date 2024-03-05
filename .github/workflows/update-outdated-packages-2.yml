@@ -1,0 +1,67 @@
+name: Update Dependencies
+
+on:
+  schedule:
+    # Run the workflow every week on Monday at 00:00 UTC
+    - cron: '0 0 * * MON'
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
+
+      - name: Setup Node.js and pnpm
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+          registry-url: 'https://registry.npmjs.org/'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Check for outdated packages
+        id: outdated
+        run: |
+          echo "::set-output name=outdated::$(pnpm outdated --depth 1 --json | jq -r '.length > 0')"
+
+      - name: Update outdated packages
+        if: steps.outdated.outputs.outdated == 'true'
+        run: pnpm update --latest --no-save --filter-production
+
+      - name: Commit and push changes
+        if: steps.outdated.outputs.outdated == 'true'
+        run: |
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+          git add package.json pnpm-lock.yaml
+          git commit -m "Chore: Update outdated packages" || true
+          git push origin HEAD:refs/heads/dependencies-update
+
+      - name: Create Pull Request
+        if: steps.outdated.outputs.outdated == 'true'
+        uses: peter-evans/create-pull-request@v3
+        with:
+          branch: dependencies-update
+          title: 'Chore: Update outdated packages'
+          body: |
+            This pull request updates the outdated packages in the project.
+
+            ## Changes:
+            - Package updates as per `pnpm outdated`
+          labels: 'dependencies, automated'
