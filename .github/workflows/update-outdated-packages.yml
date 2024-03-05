@@ -20,6 +20,9 @@ jobs:
         with:
           node-version: '18'
 
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
       - name: Install pnpm
         run: npm install -g pnpm
 
@@ -32,7 +35,7 @@ jobs:
             echo "$OUTDATED_PACKAGES" > outdated-packages.json
             echo "Outdated packages file content:"
             cat outdated-packages.json
-            echo "::set-output name=outdated::$(cat outdated-packages.json)"
+            echo "::set-output name=outdated::$(echo "$OUTDATED_PACKAGES" | jq -c)"
           else
             echo "Error while fetching outdated packages:"
             echo "$OUTDATED_PACKAGES"
