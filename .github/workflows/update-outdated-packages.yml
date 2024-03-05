@@ -35,7 +35,7 @@ jobs:
             echo "Outdated packages output:"
             echo "$OUTDATED_PACKAGES"
           else
-            ERROR_MESSAGE=$(pnpm outdated -r --json 2>&1 >/dev/null)
+            ERROR_MESSAGE=$(pnpm outdated -r --json 2>&1)
             echo "Error while fetching outdated packages: $ERROR_MESSAGE"
             exit 1
           fi
