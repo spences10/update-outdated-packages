@@ -29,18 +29,9 @@ jobs:
       - name: Check for outdated packages
         id: outdated
         run: |
-          if OUTDATED_PACKAGES=$(pnpm outdated -r --json 2>&1); then
-            echo "Outdated packages output:"
-            echo "$OUTDATED_PACKAGES"
-            echo "Setting output variable"
-            OUTDATED_PACKAGES_ENC=$(echo "$OUTDATED_PACKAGES" | jq -c)
-            echo "OUTDATED_PACKAGES=$OUTDATED_PACKAGES_ENC" >> $GITHUB_ENV
-            echo "::set-output name=outdated::$OUTDATED_PACKAGES_ENC"
-          else
-            echo "Error while fetching outdated packages:"
-            echo "$OUTDATED_PACKAGES"
-            exit 1
-          fi
+          OUTDATED_PACKAGES=$(pnpm outdated -r --json 2>&1)
+          echo "Outdated packages output:"
+          echo "$OUTDATED_PACKAGES"
 
       - name: Create pull requests for outdated packages
         id: pr
