@@ -33,7 +33,7 @@ jobs:
           OUTDATED_PACKAGES=$(pnpm outdated -r --json)
           echo "Outdated packages output:"
           echo "$OUTDATED_PACKAGES"
-          echo "OUTDATED_PACKAGES=$OUTDATED_PACKAGES" >> $GITHUB_ENV
+          echo "OUTDATED_PACKAGES=$(echo -n "$OUTDATED_PACKAGES" | base64)" >> $GITHUB_ENV
           echo "::set-output name=outdated::$OUTDATED_PACKAGES"
           set -e
 
@@ -42,7 +42,7 @@ jobs:
         with:
           script: |
             try {
-              const outdated = process.env.OUTDATED_PACKAGES;
+              const outdated = JSON.parse(process.env.OUTDATED_PACKAGES);
               const packages = JSON.parse(outdated);
 
               const githubToken = `${{ secrets.ACTIONS_GITHUB_TOKEN }}`;
