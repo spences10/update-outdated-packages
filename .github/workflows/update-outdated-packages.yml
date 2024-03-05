@@ -28,9 +28,17 @@ jobs:
 
       - name: Check for outdated packages
         run: |
-          OUTDATED_PACKAGES=$(pnpm outdated -r --json 2>&1)
-          echo "Outdated packages output:"
-          echo "$OUTDATED_PACKAGES"
+          set +e
+          OUTDATED_PACKAGES=""
+          if pnpm outdated -r --json 2>&1 >/dev/null; then
+            OUTDATED_PACKAGES=$(pnpm outdated -r --json)
+            echo "Outdated packages output:"
+            echo "$OUTDATED_PACKAGES"
+          else
+            echo "Error while fetching outdated packages"
+            exit 1
+          fi
+          set -e
 
       - name: Create pull requests for outdated packages
         id: pr
