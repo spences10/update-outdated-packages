@@ -1,0 +1,73 @@
+name: Update Outdated Packages
+
+on:
+  schedule:
+    - cron: '0 0 * * 0' # Runs every Sunday at midnight
+  workflow_dispatch: # Allows manual triggering of the workflow
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch the full history to enable force-pushes
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Check for outdated packages
+        id: outdated
+        run: |
+          pnpm outdated -r --json > outdated-packages.json
+          echo "::set-output name=outdated::$(cat outdated-packages.json)"
+
+      - name: Create pull requests for outdated packages
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const outdated = `${{ steps.outdated.outputs.outdated }}`;
+            const packages = JSON.parse(outdated);
+
+            const githubToken = `${{ secrets.ACTIONS_GITHUB_TOKEN }}`;
+            const octokit = new GitHub(githubToken);
+
+            const { owner, repo } = context.repo;
+
+            Object.keys(packages).forEach(async (packageName) => {
+              const { wanted, dependentPackages } = packages[packageName];
+
+              for (const dependentPackage of dependentPackages) {
+                const response = await octokit.rest.repos.createFork({
+                  owner,
+                  repo,
+                });
+
+                const fork = response.data;
+
+                await octokit.rest.repos.createBranch({
+                  owner: fork.owner.login,
+                  repo: fork.name,
+                  ref: `update-${packageName}-to-${wanted}`,
+                });
+
+                await octokit.rest.repos.createPullRequest({
+                  owner,
+                  repo,
+                  head: `${fork.owner.login}:update-${packageName}-to-${wanted}`,
+                  base: 'main', 
+                  title: `Update ${packageName} to ${wanted}`,
+                  body: `Update ${packageName} to version ${wanted} in ${dependentPackage.name}`,
+                });
+              }
+            });
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_GITHUB_TOKEN }}
