@@ -30,11 +30,11 @@ jobs:
         id: outdated
         run: |
           OUTDATED_PACKAGES=$(pnpm outdated -r --json | jq -r '.[] | "\(.name) \(.wanted)"')
-          echo "::set-output name=outdated_packages::$OUTDATED_PACKAGES"
+          echo "OUTDATED_PACKAGES=$OUTDATED_PACKAGES" >> $GITHUB_ENV
 
       - name: Update and commit outdated packages
         run: |
-          IFS=' ' read -ra PACKAGES <<< "${{ steps.outdated.outputs.outdated_packages }}"
+          IFS=' ' read -ra PACKAGES <<< "$OUTDATED_PACKAGES"
           for PKG in "${PACKAGES[@]}"; do
             IFS=' ' read -ra PARTS <<< "$PKG"
             pnpm add ${PARTS[0]}@${PARTS[1]}
