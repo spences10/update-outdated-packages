@@ -6,7 +6,7 @@ on:
   workflow_dispatch: # Allows manual triggering of the workflow
 
 jobs:
-  update:
+  run_check_outdated_packages:
     runs-on: ubuntu-latest
 
     steps:
@@ -26,13 +26,8 @@ jobs:
       - name: Check for outdated packages
         id: outdated
         run: |
-          OUTDATED_PACKAGES=$(pnpm outdated -r --json)
-          echo "Outdated packages output:"
-          echo "$OUTDATED_PACKAGES"
-          echo "$OUTDATED_PACKAGES" > outdated-packages.json
-          echo "Outdated packages file content:"
-          cat outdated-packages.json
-          echo "::set-output name=outdated::$(cat outdated-packages.json)"
+            OUTDATED_PACKAGES=$(pnpm outdated -r --json)
+            echo "::set-output name=outdated::$OUTDATED_PACKAGES"
 
       - name: Create pull requests for outdated packages
         id: pr
