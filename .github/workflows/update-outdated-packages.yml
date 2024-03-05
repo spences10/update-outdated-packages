@@ -28,7 +28,8 @@ jobs:
 
       - name: Check for outdated packages
         run: |
-          OUTDATED_PACKAGES=$("$BASH_COMMAND" 2>&1)
+          set +e
+          OUTDATED_PACKAGES=$((pnpm outdated -r --json) 2>&1)
           EXIT_CODE=$?
           echo "Outdated packages output:"
           echo "$OUTDATED_PACKAGES"
@@ -37,6 +38,7 @@ jobs:
             echo "Error while fetching outdated packages"
             exit 1
           fi
+          set -e
 
       - name: Create pull requests for outdated packages
         id: pr
