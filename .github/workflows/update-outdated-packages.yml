@@ -29,7 +29,7 @@ jobs:
       - name: Check for outdated packages
         id: outdated
         run: |
-          OUTDATED_PACKAGES=$(pnpm outdated -r --json | jq -r 'to_entries | .[] | "\(.key) \(.value.wanted)"')
+          OUTDATED_PACKAGES=$(pnpm outdated -r --json | jq -c 'to_entries | map({key: .key, value: .value.wanted})')
           echo "OUTDATED_PACKAGES=$OUTDATED_PACKAGES" >> $GITHUB_ENV
 
       - name: Debug OUTDATED_PACKAGES
@@ -37,8 +37,7 @@ jobs:
 
       - name: Update and commit outdated packages
         run: |
-          IFS=' ' read -ra PACKAGES <<< "$OUTDATED_PACKAGES"
-          for PKG in "${PACKAGES[@]}"; do
+          echo "$OUTDATED_PACKAGES" | jq -r '.[] | "\(.key) \(.value)"' | while read -r PKG; do
             IFS=' ' read -ra PARTS <<< "$PKG"
             pnpm add ${PARTS[0]}@${PARTS[1]}
             git config --global user.name 'GitHub Actions'
