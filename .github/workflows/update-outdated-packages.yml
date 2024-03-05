@@ -32,6 +32,8 @@ jobs:
           OUTDATED_PACKAGES=$(pnpm outdated -r --json 2>&1)
           echo "Outdated packages output:"
           echo "$OUTDATED_PACKAGES"
+          OUTDATED_PACKAGES_ENC=$(echo "$OUTDATED_PACKAGES" | jq -c)
+          echo "::set-output name=outdated::$OUTDATED_PACKAGES_ENC"
 
       - name: Create pull requests for outdated packages
         id: pr
