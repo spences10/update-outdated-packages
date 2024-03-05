@@ -29,12 +29,8 @@ jobs:
       - name: Check for outdated packages
         id: outdated
         run: |
-          set +e
           OUTDATED_PACKAGES=$(pnpm outdated -r --json)
-          echo "Outdated packages output:"
-          echo "$OUTDATED_PACKAGES"
           echo "OUTDATED_PACKAGES=$OUTDATED_PACKAGES" >> $GITHUB_OUTPUT
-          set -e
 
       - name: Create pull requests for outdated packages
         uses: actions/github-script@v7
