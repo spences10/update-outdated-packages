@@ -32,13 +32,9 @@ jobs:
           if OUTDATED_PACKAGES=$(pnpm outdated -r --json 2>&1); then
             echo "Outdated packages output:"
             echo "$OUTDATED_PACKAGES"
-            echo "$OUTDATED_PACKAGES" > outdated-packages.json
-            echo "Outdated packages file content:"
-            cat outdated-packages.json
-            echo "Saving output to a temporary file"
-            echo "$OUTDATED_PACKAGES" | jq -c > outdated-packages-temp.json
-            echo "Setting output variable from the temporary file"
-            OUTDATED_PACKAGES_ENC=$(cat outdated-packages-temp.json)
+            echo "Setting output variable"
+            OUTDATED_PACKAGES_ENC=$(echo "$OUTDATED_PACKAGES" | jq -c)
+            echo "OUTDATED_PACKAGES=$OUTDATED_PACKAGES_ENC" >> $GITHUB_ENV
             echo "::set-output name=outdated::$OUTDATED_PACKAGES_ENC"
           else
             echo "Error while fetching outdated packages:"
@@ -46,14 +42,13 @@ jobs:
             exit 1
           fi
 
-
       - name: Create pull requests for outdated packages
         id: pr
         uses: actions/github-script@v7
         with:
           script: |
             try {
-              const outdated = `${{ steps.outdated.outputs.outdated }}`;
+              const outdated = process.env.OUTDATED_PACKAGES;
               const packages = JSON.parse(outdated);
 
               const githubToken = `${{ secrets.ACTIONS_GITHUB_TOKEN }}`;
@@ -97,4 +92,3 @@ jobs:
             }
         env:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_GITHUB_TOKEN }}
-
