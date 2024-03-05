@@ -1,12 +1,12 @@
 name: Update Outdated Packages
 
 on:
-  schedule:
+ schedule:
     - cron: '0 0 * * 0' # Runs every Sunday at midnight
-  workflow_dispatch: # Allows manual triggering of the workflow
+ workflow_dispatch: # Allows manual triggering of the workflow
 
 jobs:
-  run_check_outdated_packages:
+ run_check_outdated_packages:
     runs-on: ubuntu-latest
 
     steps:
@@ -29,56 +29,25 @@ jobs:
       - name: Check for outdated packages
         id: outdated
         run: |
-          OUTDATED_PACKAGES=$(pnpm outdated -r --json)
+          OUTDATED_PACKAGES=$(pnpm outdated -r --json | jq -r '.[] | "\(.name) \(.wanted)"')
           echo "::set-output name=outdated_packages::$OUTDATED_PACKAGES"
 
-      - name: Create pull requests for outdated packages
-        uses: actions/github-script@v7
+      - name: Update and commit outdated packages
+        run: |
+          IFS=' ' read -ra PACKAGES <<< "${{ steps.outdated.outputs.outdated_packages }}"
+          for PKG in "${PACKAGES[@]}"; do
+            IFS=' ' read -ra PARTS <<< "$PKG"
+            pnpm add ${PARTS[0]}@${PARTS[1]}
+            git config --global user.name 'GitHub Actions'
+            git config --global user.email 'actions@github.com'
+            git commit -am "Update ${PARTS[0]} to ${PARTS[1]}"
+          done
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v3
         with:
-          script: |
-            try {
-              const outdated = process.env.OUTDATED_PACKAGES;
-              const packages = JSON.parse(outdated);
-
-              const githubToken = `${{ secrets.ACTIONS_GITHUB_TOKEN }}`;
-              const octokit = new GitHub(githubToken);
-
-              const { owner, repo } = context.repo;
-
-              Object.keys(packages).forEach(async (packageName) => {
-                const { wanted, dependentPackages } = packages[packageName];
-
-                for (const dependentPackage of dependentPackages) {
-                  try {
-                    const response = await octokit.rest.repos.createFork({
-                      owner,
-                      repo,
-                    });
-
-                    const fork = response.data;
-
-                    await octokit.rest.repos.createBranch({
-                      owner: fork.owner.login,
-                      repo: fork.name,
-                      ref: `update-${packageName}-to-${wanted}`,
-                    });
-
-                    await octokit.rest.repos.createPullRequest({
-                      owner,
-                      repo,
-                      head: `${fork.owner.login}:update-${packageName}-to-${wanted}`,
-                      base: 'main',
-                      title: `Update ${packageName} to ${wanted}`,
-                      body: `Update ${packageName} to version ${wanted} in ${dependentPackage.name}`,
-                    });
-                  } catch (error) {
-                    console.error(`Error while creating PR for ${packageName}: ${error.message}`);
-                  }
-                }
-              });
-            } catch (error) {
-              console.error(`Error while processing outdated packages: ${error.message}`);
-            }
-          github-token: ${{ secrets.ACTIONS_GITHUB_TOKEN }}
-        env:
-          OUTDATED_PACKAGES: ${{ steps.outdated.outputs.outdated_packages }}
+          title: "Update outdated packages"
+          body: "This PR updates all outdated packages to their latest versions."
+          branch: "update-outdated-packages"
+          delete-branch: true
+          token: ${{ secrets.ACTIONS_GITHUB_TOKEN }}
