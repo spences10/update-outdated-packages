@@ -41,28 +41,19 @@ jobs:
             IFS=' ' read -ra PARTS <<< "$PKG"
             BRANCH_NAME="update-${PARTS[0]}-to-${PARTS[1]}"
             git checkout -b $BRANCH_NAME
-            echo "Updating ${PARTS[0]} to version ${PARTS[1]}"
             pnpm add ${PARTS[0]}@${PARTS[1]}
-            echo "Checking for updates..."
-            pnpm list --depth=0
             git config --global user.name 'GitHub Actions'
             git config --global user.email 'actions@github.com'
             git add .
-            if git diff --quiet; then
-              echo "No changes to commit for ${PARTS[0]}."
-              git checkout main
-              git branch -D $BRANCH_NAME
-            else
-              git commit -m "Update ${PARTS[0]} to ${PARTS[1]}"
-              git push origin $BRANCH_NAME
-            fi
+            git commit -m "Update ${PARTS[0]} to ${PARTS[1]}"
+            git push origin $BRANCH_NAME
           done
 
       - name: Create Pull Requests
         uses: peter-evans/create-pull-request@v6
         with:
-          title: 'Update outdated packages'
-          body: 'This PR updates all outdated packages to their latest versions.'
-          branch: 'update-outdated-packages'
+          title: 'Update ${{ steps.outdated.outputs.package_name }} to ${{ steps.outdated.outputs.package_version }}'
+          body: 'This PR updates ${{ steps.outdated.outputs.package_name }} to version ${{ steps.outdated.outputs.package_version }}.'
+          branch: 'update-${{ steps.outdated.outputs.package_name }}-to-${{ steps.outdated.outputs.package_version }}'
           delete-branch: true
           token: ${{ secrets.ACTIONS_GITHUB_TOKEN }}
