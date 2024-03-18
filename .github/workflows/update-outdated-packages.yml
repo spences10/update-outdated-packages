@@ -20,10 +20,26 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Install npm-check-updates and @octokit/rest
-        run: pnpm add -D npm-check-updates @octokit/rest
+      - name: Install npm-check-updates
+        run: pnpm add -D npm-check-updates
 
-      - name: Update outdated packages
+      - name: Run npm-check-updates and create pull requests
+        id: ncu
+        run: |
+          npx npm-check-updates -u --packageFile package.json
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+          git add package.json
+          git diff-index --quiet HEAD || git commit -m "Update outdated packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: node .github/workflows/update-outdated-packages.js
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v4
+        with:
+          branch: ${{ github.ref }}
+          delete-branch: true
+          title: 'Update outdated packages'
+          body: 'This pull request updates outdated packages.'
+          labels: 'dependencies,automated'
+          reviewers: 'your-github-username'
