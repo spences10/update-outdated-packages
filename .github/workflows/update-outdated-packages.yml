@@ -20,7 +20,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Install pnpm-check-updates and @octokit/rest
+      - name: Install npm-check-updates and @octokit/rest
         run: pnpm add -D npm-check-updates @octokit/rest
 
       - name: Update outdated packages

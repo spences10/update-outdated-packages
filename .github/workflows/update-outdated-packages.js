@@ -1,11 +1,11 @@
-import * as pnpmCheckUpdates from 'pnpm-check-updates';
+import * as npmCheckUpdates from 'npm-check-updates';
 import * as octokit from '@octokit/rest';
 import * as fs from 'fs';
 
 async function main() {
 	// Run pnpm-check-updates to find outdated packages
 	const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-	const outdatedPackages = await pnpmCheckUpdates({
+	const outdatedPackages = await npmCheckUpdates({
 		packageFile: 'package.json',
 		json: true
 	});
