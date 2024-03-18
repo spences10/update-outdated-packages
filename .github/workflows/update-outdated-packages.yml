@@ -35,11 +35,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create pull request
-        uses: peter-evans/create-pull-request@v4
+        uses: peter-evans/create-pull-request@v6.0.2
         with:
           branch: ${{ github.ref }}
-          delete-branch: true
+          delete-branch: false
           title: 'Update outdated packages'
           body: 'This pull request updates outdated packages.'
           labels: 'dependencies,automated'
-          reviewers: 'your-github-username'
+          reviewers: 'spences10'
