@@ -1,62 +1,21 @@
-name: Update Outdated Packages
+name: Update outdated packages
 
 on:
   schedule:
-    - cron: '0 0 * * 0' # Runs every Sunday at midnight
-  workflow_dispatch: # Allows manual triggering of the workflow
+    - cron: '0 0 * * 0' # Run every Sunday at midnight
+  workflow_dispatch: # Allow manual triggering
 
 jobs:
-  run_check_outdated_packages:
+  update:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # Fetch the full history to enable force-pushes
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Install pnpm
-        run: npm install -g pnpm
-
-      - name: Run update-outdated-packages script
-        id: outdated
-        run: node scripts/update-outdated-packages.js
-
-      - name: Update and commit outdated packages
-        run: |
-          for package in "${{ steps.outdated.outputs.outdated_packages }}"; do
-            IFS='=' read -ra PARTS <<< "$package"
-            BRANCH_NAME="update-${PARTS[0]}-to-${PARTS[1]}"
-            git checkout -b $BRANCH_NAME
-            pnpm add ${PARTS[0]}@${PARTS[1]}
-            git config --global user.name 'GitHub Actions'
-            git config --global user.email 'actions@github.com'
-            git add .
-            git commit -m "Update ${PARTS[0]} to ${PARTS[1]}"
-            git push origin $BRANCH_NAME
-          done
-
-      - name: Create Pull Requests
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.ACTIONS_GITHUB_TOKEN }}
+      - name: Update outdated packages
         env:
-          OUTDATED_PACKAGES: "${{ steps.outdated.outputs.outdated_packages }}"
-        run: |
-          for package in "$OUTDATED_PACKAGES"; do
-            IFS='=' read -ra PARTS <<< "$package"
-            BRANCH_NAME="update-${PARTS[0]}-to-${PARTS[1]}"
-            echo "::set-output name=branch::${BRANCH_NAME}"
-            echo "::set-output name=title::Update ${PARTS[0]} to ${PARTS[1]}"
-            echo "::set-output name=body::This PR updates ${PARTS[0]} to version ${PARTS[1]}."
-            echo "::set-output name=delete-branch::true"
-            echo "::set-output name=head::${BRANCH_NAME}"
-            echo "::set-output name=base::main"
-            echo "::add-matcher::$(cat ${GITHUB_ACTION_PATH}/lib/matchers/success.js)"
-            npx create-pull-request
-          done
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run update-outdated-packages
