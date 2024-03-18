@@ -21,7 +21,7 @@ jobs:
         run: pnpm install
 
       - name: Install pnpm-check-updates and @octokit/rest
-        run: pnpm add -D pnpm-check-updates @octokit/rest
+        run: pnpm add -D npm-check-updates @octokit/rest
 
       - name: Update outdated packages
         env:
