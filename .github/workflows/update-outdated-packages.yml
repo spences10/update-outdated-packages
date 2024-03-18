@@ -20,25 +20,17 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install jq
-        run: sudo apt-get install -y jq
-
       - name: Install pnpm
         run: npm install -g pnpm
 
-      - name: Check for outdated packages
+      - name: Run update-outdated-packages script
         id: outdated
-        run: |
-          OUTDATED_PACKAGES=$(pnpm outdated -r --json | jq -c 'to_entries | map({key: .key, value: .value.latest})')
-          echo "OUTDATED_PACKAGES=$OUTDATED_PACKAGES" >> $GITHUB_ENV
-
-      - name: Debug OUTDATED_PACKAGES
-        run: echo "$OUTDATED_PACKAGES"
+        run: node scripts/update-outdated-packages.js
 
       - name: Update and commit outdated packages
         run: |
-          echo "$OUTDATED_PACKAGES" | jq -r '.[] | "\(.key) \(.value)"' | while read -r PKG; do
-            IFS=' ' read -ra PARTS <<< "$PKG"
+          for package in "${{ steps.outdated.outputs.outdated_packages }}"; do
+            IFS='=' read -ra PARTS <<< "$package"
             BRANCH_NAME="update-${PARTS[0]}-to-${PARTS[1]}"
             git checkout -b $BRANCH_NAME
             pnpm add ${PARTS[0]}@${PARTS[1]}
@@ -52,8 +44,19 @@ jobs:
       - name: Create Pull Requests
         uses: peter-evans/create-pull-request@v6
         with:
-          title: 'Update ${{ steps.outdated.outputs.package_name }} to ${{ steps.outdated.outputs.package_version }}'
-          body: 'This PR updates ${{ steps.outdated.outputs.package_name }} to version ${{ steps.outdated.outputs.package_version }}.'
-          branch: 'update-${{ steps.outdated.outputs.package_name }}-to-${{ steps.outdated.outputs.package_version }}'
-          delete-branch: true
           token: ${{ secrets.ACTIONS_GITHUB_TOKEN }}
+        env:
+          OUTDATED_PACKAGES: "${{ steps.outdated.outputs.outdated_packages }}"
+        run: |
+          for package in "$OUTDATED_PACKAGES"; do
+            IFS='=' read -ra PARTS <<< "$package"
+            BRANCH_NAME="update-${PARTS[0]}-to-${PARTS[1]}"
+            echo "::set-output name=branch::${BRANCH_NAME}"
+            echo "::set-output name=title::Update ${PARTS[0]} to ${PARTS[1]}"
+            echo "::set-output name=body::This PR updates ${PARTS[0]} to version ${PARTS[1]}."
+            echo "::set-output name=delete-branch::true"
+            echo "::set-output name=head::${BRANCH_NAME}"
+            echo "::set-output name=base::main"
+            echo "::add-matcher::$(cat ${GITHUB_ACTION_PATH}/lib/matchers/success.js)"
+            npx create-pull-request
+          done
