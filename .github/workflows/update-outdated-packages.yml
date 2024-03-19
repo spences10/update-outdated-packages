@@ -29,6 +29,6 @@ jobs:
       run: |
         git config --global user.email "spences10apps@gmail.com"
         git config --global user.name "spences10"
-        git add pnpm-lock.yaml
+        git add package.json pnpm-lock.yaml
         git diff-index --quiet HEAD || git commit -m "Update dependencies"
         git push
