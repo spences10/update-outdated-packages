@@ -31,4 +31,5 @@ jobs:
         git config --global user.name "spences10"
         git add package.json pnpm-lock.yaml
         git diff-index --quiet HEAD || git commit -m "Update dependencies"
-        git push
+        git push https://${{ secrets.ACTIONS_GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:${{ github.ref }}
+
