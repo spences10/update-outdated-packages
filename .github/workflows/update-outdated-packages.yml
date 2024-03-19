@@ -4,6 +4,7 @@ on:
   schedule:
     # Runs every week on Monday at 00:00 UTC
     - cron: '0 0 * * MON'
+  workflow_dispatch:
 
 jobs:
   update:
