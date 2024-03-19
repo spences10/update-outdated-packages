@@ -19,11 +19,11 @@ jobs:
       with:
         version: '8.15.4'
 
-    - name: Install pnpm-check-updates
-      run: pnpm add -g pnpm-check-updates
+    - name: Install npm-check-updates
+      run: pnpm add -g npm-check-updates
 
     - name: Update dependencies
-      run: pnpx pnpm-check-updates -u
+      run: pnpx npm-check-updates -u
 
     - name: Commit and push
       run: |
