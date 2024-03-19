@@ -1,45 +1,33 @@
-name: Update outdated packages
+name: Update Dependencies
 
 on:
   schedule:
-    - cron: '0 0 * * 0' # Run every Sunday at midnight
-  workflow_dispatch: # Allow manual triggering
+    # Runs every week on Monday at 00:00 UTC
+    - cron: '0 0 * * MON'
 
 jobs:
   update:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: '8.15.4'
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v3
+      with:
+        version: '8.15.4'
 
-      - name: Install dependencies
-        run: pnpm install
+    - name: Install pnpm-check-updates
+      run: pnpm add -g pnpm-check-updates
 
-      - name: Install npm-check-updates
-        run: pnpm add -D npm-check-updates
+    - name: Update dependencies
+      run: pnpx pnpm-check-updates -u
 
-      - name: Run npm-check-updates and create pull requests
-        id: ncu
-        run: |
-          npx npm-check-updates -u --packageFile package.json
-          git config --global user.email "action@github.com"
-          git config --global user.name "GitHub Action"
-          git add package.json
-          git diff-index --quiet HEAD || git commit -m "Update outdated packages"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create pull request
-        uses: peter-evans/create-pull-request@v6.0.2
-        with:
-          branch: ${{ github.ref }}
-          delete-branch: false
-          title: 'Update outdated packages'
-          body: 'This pull request updates outdated packages.'
-          labels: 'dependencies,automated'
-          reviewers: 'spences10'
+    - name: Commit and push
+      run: |
+        git config --global user.email "you@example.com"
+        git config --global user.name "Your Name"
+        git add pnpm-lock.yaml
+        git diff-index --quiet HEAD || git commit -m "Update dependencies"
+        git push
