@@ -7,10 +7,16 @@ on:
   workflow_dispatch:
 
 jobs:
- createPullRequest:
+  createPullRequest:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      # Set Git user to GitHub Actions bot
+      - name: Set Git user
+        run: |
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
 
       # Make changes to your repository here
       - name: Make changes
@@ -23,6 +29,6 @@ jobs:
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.ACTIONS_GITHUB_TOKEN }}
-          commit-message: "Add newfile.txt"
-          title: "Add newfile.txt"
-          body: "This PR adds newfile.txt"
+          commit-message: 'Add newfile.txt'
+          title: 'Add newfile.txt'
+          body: 'This PR adds newfile.txt'
