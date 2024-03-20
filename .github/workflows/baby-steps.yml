@@ -1,13 +1,13 @@
 name: Create Pull Request
 
 on:
-  schedule:
+ schedule:
     # Runs every week on Monday at 00:00 UTC
     - cron: '0 0 * * MON'
-  workflow_dispatch:
+ workflow_dispatch:
 
 jobs:
-  createPullRequest:
+ createPullRequest:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,6 +17,12 @@ jobs:
         run: |
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
+
+      # Configure Git to use the GitHub token for HTTPS authentication
+      - name: Configure Git for HTTPS authentication
+        run: |
+          git config --global credential.helper store
+          echo "https://${{ secrets.ACTIONS_GITHUB_TOKEN }}:x-oauth-basic@github.com" > ~/.git-credentials
 
       # Make changes to your repository here
       - name: Make changes
