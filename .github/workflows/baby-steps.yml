@@ -28,18 +28,10 @@ jobs:
       - name: Update dependencies
         run: pnpm update --latest --recursive
 
-      - name: Get current date
-        id: get-date
-        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
-          token: ${{ secrets.ACTIONS_GITHUB_TOKEN }}
           commit-message: Update npm packages to latest versions
           title: Update npm packages
-          body: |
-            Update npm packages to their latest versions.
-            - Date: ${{ steps.get-date.outputs.date }}
-            - Triggered by: ${{ github.event_name }}
-          branch: update-npm-packages-${{ steps.get-date.outputs.date }}
+          body: Update npm packages to their latest versions
+          branch: update-npm-packages
