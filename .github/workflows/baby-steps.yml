@@ -28,8 +28,8 @@ jobs:
       - name: Check for outdated packages
         run: pnpm outdated
 
-      - name: Update packages
-        run: pnpm update
+      - name: Update packages and version ranges
+        run: pnpm update --latest
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
