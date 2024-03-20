@@ -1,31 +1,47 @@
-name: Update NPM packages
-
+name: Update AUTHORS
 on:
-  schedule:
-    - cron: '0 0 * * 0' # Runs every Sunday at midnight
-  workflow_dispatch:
+ push:
+    branches:
+      - main
 
 jobs:
-  update-packages:
+  updateOutdatedPackages:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
+      - uses: actions/checkout@v4
         with:
-          node-version: '16.x'
+          fetch-depth: 0
 
-      - name: Update npm packages and sync package.json
-        id: update
-        uses: tjololo/npm-package-update-sync@v1.4.2
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Check for outdated packages
+        id: outdated
+        run: |
+          echo "::set-output name=outdated::$(pnpm outdated --depth 1 --json | jq -r '.[] | select(.latest != .current) | .package')"
+
+      - name: Update outdated packages
+        if: steps.outdated.outputs.outdated != ''
+        run: |
+          pnpm upgrade --latest --save $(echo "${{ steps.outdated.outputs.outdated }}" | tr '\n' ' ')
+          git config --global user.email "you@example.com"
+          git config --global user.name "Your Name"
+          git add package.json pnpm-lock.yaml
+          git commit -m "Update outdated packages"
 
       - name: Create Pull Request
+        if: steps.outdated.outputs.outdated != ''
         uses: peter-evans/create-pull-request@v6
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: Update npm packages
-          title: Update npm packages
-          body: ${{ steps.update.outputs.body }}
-          labels: dependencies
+          commit-message: Update outdated packages
+          title: Update Outdated Packages
+          body: Update outdated packages to their latest versions
+          branch: update-outdated-packages
