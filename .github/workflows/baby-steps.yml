@@ -2,7 +2,7 @@ name: Update NPM packages
 
 on:
   schedule:
-    - cron: '0 0 * * 0' # Runs every Sunday at midnight
+  - cron: '0 0 * * 0' # Runs every Sunday at midnight
   workflow_dispatch:
 
 jobs:
@@ -25,25 +25,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Check for outdated packages
-        id: outdated
-        run: pnpm outdated -r --json > outdated.json
-          
-      - name: Update packages and create PRs
-        run: |
-          packages=$(echo "${{ steps.outdated.outputs.packages }}" | jq -r '.[] | @base64')
-          for pkg in $packages; do
-            _jq() {
-              echo ${pkg} | base64 --decode | jq -r ${1}
-            }
-            pkg_name=$(_jq '.package')
-            pkg_latest=$(_jq '.latest')
-            pnpm add ${pkg_name}@${pkg_latest}
-            git add .
-            git commit -m "Update ${pkg_name} to ${pkg_latest}"
-            git push origin HEAD:update-${pkg_name}
-            echo "::set-output name=pr_branch::update-${pkg_name}"
-          done
+      - name: Update dependencies
+        run: pnpm update --recursive
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
