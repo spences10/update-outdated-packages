@@ -28,7 +28,8 @@ jobs:
       - name: Check for outdated packages
         id: outdated
         run: |
-          echo "::set-output name=packages::$(pnpm outdated -r --json)"
+          pnpm outdated -r --json > outdated.json
+          echo "::set-output name=packages::$(cat outdated.json)"
 
       - name: Update packages and create PRs
         run: |
