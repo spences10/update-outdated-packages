@@ -27,16 +27,7 @@ jobs:
 
       - name: Update dependencies with exclude list
         run: |
-          echo '{
-            "pnpm": {
-              "update": {
-                "ignore": {
-                 "prettier-plugin-tailwindcss": "*",
-                 "vitest": "*"
-                }
-              }
-            }
-          }' >> package.json
+          jq -s '.[0] * {pnpm: {update: {ignore: {"prettier-plugin-tailwindcss": "*", "vitest": "*"}}}}' package.json > package.json.tmp && mv package.json.tmp package.json
           pnpm update --latest --recursive
 
       - name: Create Pull Request
