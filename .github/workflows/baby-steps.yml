@@ -26,7 +26,7 @@ jobs:
         run: pnpm install
 
       - name: Update dependencies
-        run: pnpm update --latest --recursive --filter '!prettier-plugin-tailwindcss !vitest'
+        run: pnpm update --latest --recursive
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
