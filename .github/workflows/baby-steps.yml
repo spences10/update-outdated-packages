@@ -34,7 +34,7 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.ACTIONS_GITHUB_TOKEN }}
           commit-message: Update npm packages
           title: Update npm packages
           body: Update npm packages to their latest versions
