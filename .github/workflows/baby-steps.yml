@@ -1,0 +1,28 @@
+name: Create Pull Request
+
+on:
+  schedule:
+    # Runs every week on Monday at 00:00 UTC
+    - cron: '0 0 * * MON'
+  workflow_dispatch:
+
+jobs:
+ createPullRequest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Make changes to your repository here
+      - name: Make changes
+        run: |
+          echo "This is a new file" > newfile.txt
+          git add newfile.txt
+          git commit -m "Add newfile.txt"
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "Add newfile.txt"
+          title: "Add newfile.txt"
+          body: "This PR adds newfile.txt"
