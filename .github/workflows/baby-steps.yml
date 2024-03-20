@@ -1,40 +1,22 @@
-name: Create Pull Request
-
+name: Update AUTHORS
 on:
- schedule:
-    # Runs every week on Monday at 00:00 UTC
-    - cron: '0 0 * * MON'
- workflow_dispatch:
-
+ push:
+    branches:
+      - main
 jobs:
- createPullRequest:
+ updateAuthors:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      # Set Git user to GitHub Actions bot
-      - name: Set Git user
+        with:
+          fetch-depth: 0
+      - name: Update AUTHORS
         run: |
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --global user.name "github-actions[bot]"
-
-      # Configure Git to use the GitHub token for HTTPS authentication
-      - name: Configure Git for HTTPS authentication
-        run: |
-          git config --global credential.helper store
-          echo "https://${{ secrets.ACTIONS_GITHUB_TOKEN }}:x-oauth-basic@github.com" > ~/.git-credentials
-
-      # Make changes to your repository here
-      - name: Make changes
-        run: |
-          echo "This is a new file" > newfile.txt
-          git add newfile.txt
-          git commit -m "Add newfile.txt"
-
+          git log --format='%aN <%aE>%n%cN <%cE>' | sort -u > AUTHORS
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
-          token: ${{ secrets.ACTIONS_GITHUB_TOKEN }}
-          commit-message: 'Add newfile.txt'
-          title: 'Add newfile.txt'
-          body: 'This PR adds newfile.txt'
+          commit-message: update authors
+          title: Update AUTHORS
+          body: Credit new contributors by updating AUTHORS
+          branch: update-authors
