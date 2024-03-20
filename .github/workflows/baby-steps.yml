@@ -26,10 +26,25 @@ jobs:
         run: pnpm install
 
       - name: Check for outdated packages
-        run: pnpm outdated
+        id: outdated
+        run: |
+          echo "::set-output name=packages::$(pnpm outdated -r --json)"
 
-      - name: Update packages and version ranges
-        run: pnpm update --latest
+      - name: Update packages and create PRs
+        run: |
+          packages=$(echo "${{ steps.outdated.outputs.packages }}" | jq -r '.[] | @base64')
+          for pkg in $packages; do
+            _jq() {
+              echo ${pkg} | base64 --decode | jq -r ${1}
+            }
+            pkg_name=$(_jq '.package')
+            pkg_latest=$(_jq '.latest')
+            pnpm add ${pkg_name}@${pkg_latest}
+            git add .
+            git commit -m "Update ${pkg_name} to ${pkg_latest}"
+            git push origin HEAD:update-${pkg_name}
+            echo "::set-output name=pr_branch::update-${pkg_name}"
+          done
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
@@ -39,3 +54,4 @@ jobs:
           title: Update npm packages
           body: Update npm packages to their latest versions
           labels: dependencies
+          branch: ${{ steps.update-packages.outputs.pr_branch }}
