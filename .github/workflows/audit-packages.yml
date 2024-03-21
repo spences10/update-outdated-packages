@@ -1,12 +1,12 @@
 name: PNPM Audit and Create PR
 
 on:
-  schedule:
+ schedule:
     - cron: '0 0 * * 0' # Runs every Sunday at midnight
-  workflow_dispatch:
+ workflow_dispatch:
 
 jobs:
-  audit-and-create-pr:
+ audit-and-create-pr:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -25,17 +25,19 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Run PNPM Audit
-        uses: JamesRobertWiseman/pnpm-audit@v2
-        with:
-          github_token: ${{ secrets.ACTIONS_GITHUB_TOKEN }}
-          level: critical
-          fails: true
+      - name: Run PNPM Audit and Fix
+        run: |
+          pnpm audit --fix
+          git config --global user.name 'GitHub Action'
+          git config --global user.email 'action@github.com'
+          git add .
+          git commit -m "Fix vulnerabilities found by pnpm audit" || echo "No changes to commit"
+          git push
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
-          commit-message: Address vulnerabilities found by pnpm audit
-          title: Address vulnerabilities
-          body: This PR addresses vulnerabilities found by pnpm audit.
-          branch: address-vulnerabilities
+          commit-message: Fix vulnerabilities found by pnpm audit
+          title: Fix vulnerabilities
+          body: This PR fixes vulnerabilities found by pnpm audit.
+          branch: fix-vulnerabilities
