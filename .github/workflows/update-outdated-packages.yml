@@ -1,35 +1,37 @@
-name: Update Dependencies
+name: Update NPM packages
 
 on:
   schedule:
-    # Runs every week on Monday at 00:00 UTC
-    - cron: '0 0 * * MON'
+    - cron: '0 0 * * 0' # Runs every Sunday at midnight
   workflow_dispatch:
 
 jobs:
-  update:
+  update-packages:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup pnpm
-      uses: pnpm/action-setup@v3
-      with:
-        version: '8.15.4'
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18.x
 
-    - name: Install npm-check-updates
-      run: pnpm add -g npm-check-updates
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: '8'
 
-    - name: Update dependencies
-      run: pnpx npm-check-updates -u
+      - name: Install dependencies
+        run: pnpm install
 
-    - name: Commit and push
-      run: |
-        git config --global user.email "spences10apps@gmail.com"
-        git config --global user.name "spences10"
-        git add package.json pnpm-lock.yaml
-        git diff-index --quiet HEAD || git commit -m "Update dependencies"
-        git push https://${{ secrets.ACTIONS_GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:${{ github.ref }}
+      - name: Update dependencies
+        run: pnpm update --latest --recursive --filter=!vitest
 
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: Update npm packages to latest versions
+          title: Update npm packages
+          body: Update npm packages to their latest versions
+          branch: update-npm-packages

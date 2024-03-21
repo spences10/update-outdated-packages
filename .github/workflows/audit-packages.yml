@@ -1,4 +1,4 @@
-name: Update NPM packages
+name: PNPM Audit and Create PR
 
 on:
   schedule:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  update-packages:
+  audit-and-create-pr:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -25,13 +25,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Update dependencies
-        run: pnpm update --latest --recursive
+      - name: Run PNPM Audit
+        uses: JamesRobertWiseman/pnpm-audit@v2
+        with:
+          github_token: ${{ secrets.ACTIONS_GITHUB_TOKEN }}
+          level: critical
+          fails: true
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
-          commit-message: Update npm packages to latest versions
-          title: Update npm packages
-          body: Update npm packages to their latest versions
-          branch: update-npm-packages
+          commit-message: Address vulnerabilities found by pnpm audit
+          title: Address vulnerabilities
+          body: This PR addresses vulnerabilities found by pnpm audit.
+          branch: address-vulnerabilities
