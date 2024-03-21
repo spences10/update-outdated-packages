@@ -26,13 +26,7 @@ jobs:
         run: pnpm install
 
       - name: Run PNPM Audit and Fix
-        run: |
-          pnpm audit --fix
-          git config --global user.name 'GitHub Action'
-          git config --global user.email 'action@github.com'
-          git add .
-          git commit -m "Fix vulnerabilities found by pnpm audit" || echo "No changes to commit"
-          git push
+        run: pnpm audit --fix
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
