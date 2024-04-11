@@ -35,6 +35,6 @@ jobs:
           title: Update npm packages
           body: Update npm packages to their latest versions
           branch: update-npm-packages
-          labels: dependencies
+          labels: "dependencies, github-actions"
   
   
