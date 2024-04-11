@@ -1,4 +1,4 @@
-name: PNPM Audit and Create PR
+name: Audit NPM packages
 
 on:
   schedule:
