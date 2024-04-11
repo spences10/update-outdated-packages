@@ -35,23 +35,6 @@ jobs:
           title: Update npm packages
           body: Update npm packages to their latest versions
           branch: update-npm-packages
+          labels: dependencies
   
-  label_issues:
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
-      issues: write
-      contents: read          
-    steps:
-      - name: Add label
-        uses: actions/github-script@v6
-        continue-on-error: true
-        with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
-          script: |
-            github.rest.issues.addLabels({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              labels: ['dependencies']
-            });
+  
