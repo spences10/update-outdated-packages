@@ -49,6 +49,9 @@
 				"prettier-plugin-tailwindcss": "*",
 				"vite": "*"
 			}
+		},
+		"overrides": {
+			"micromatch@<4.0.8": ">=4.0.8"
 		}
 	}
 }
